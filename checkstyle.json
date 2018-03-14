@@ -550,6 +550,7 @@
 			"checkstyle/checks/whitespace/WhitespaceAroundCheck",
 			"checkstyle/checks/block/EmptyBlockCheck",
 			"checkstyle/checks/whitespace/EmptyLinesCheck",
+			"checkstyle/checks/whitespace/WhitespaceCheck",
 			"checkstyle/token/walk/WalkStatement"
 		],
 		"LeftCurly": [
@@ -565,6 +566,7 @@
 			"checkstyle/checks/whitespace/WhitespaceAfterCheck",
 			"checkstyle/checks/whitespace/WhitespaceAroundCheck",
 			"checkstyle/checks/whitespace/EmptyLinesCheck",
+			"checkstyle/checks/whitespace/WhitespaceCheck",
 			"checkstyle/token/walk/WalkStatement"
 		],
 		"NestedForDepth": [
