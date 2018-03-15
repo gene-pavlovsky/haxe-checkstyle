@@ -2,7 +2,9 @@ package checkstyle.checks.whitespace;
 
 import checkstyle.checks.whitespace.WhitespaceCheckBase.WhitespacePolicy;
 import checkstyle.token.TokenTree;
-import checkstyle.utils.TokenTreeCheckUtils;
+
+using Lambda;
+using checkstyle.utils.TokenTreeCheckUtils;
 
 //TODO: Short lambdas (check every use of KwdFunction and FUNCTION)
 
@@ -23,7 +25,7 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 			MAP_ARROW, ASSIGN, UNARY, COMPARE, BITWISE, BOOL
 		];
 		policy = AROUND;
-		contexts = [OBJECT_DECL, FUNCTION, FIELD, SWITCH, TRY_CATCH, ARRAY_ACCESS, BLOCK, CLASS, INTERFACE, TYPEDEF, ABSTRACT, ENUM];
+		contexts = [OBJECT_DECL, FUNCTION, VAR, SWITCH, TRY_CATCH, ARRAY_ACCESS, BLOCK, CLASS, INTERFACE, TYPEDEF, ABSTRACT, ENUM];
 	}
 
 	override function violation(tok:TokenTree, p:String) {
@@ -111,11 +113,13 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 					tokenList.push(Binop(OpInterval));
 				case FUNCTION_ARROW:
 					tokenList.push(Arrow);
+				case LT:
+					tokenList.push(Binop(OpLt));
+				case GT:
+					tokenList.push(Binop(OpGt));
 			}
 		}
-
 		if (tokenList.length <= 0) return;
-		trace(checker.getTokenTree().printTokenTree());
 
 		convertedContexts = contexts.map(function (s) return ContextSelector.fromString(s));
 		checkTokens(checker.getTokenTree(), tokenList, policy);
@@ -131,8 +135,8 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 	}
 
 	function checkContext(token:TokenTree):Bool {
-		// if (TokenTreeCheckUtils.isImportMult(token)) return false;
-		// if (TokenTreeCheckUtils.filterOpSub(token)) return false;
+		// if (token.isImportMult()) return false;
+		if (token.filterOpSub()) return false;
 		//TODO: handle different minuses
 		var contextQueue:List<TokenContext> = determineContext(token);
 		return contextQueue != null && hasContext(contextQueue);
@@ -143,9 +147,12 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 
 		function addSinglelineIfNeeded() {
 			if (!token.hasChildren() || stack.isEmpty()) return; //should not happen
-			if (stack.last() == COND || stack.last() == FUNCTION_PARAM || stack.last() == BLOCK) return;
+			var notSingleLines = [COND, FUNCTION_PARAM, BLOCK, TYPE_PARAMETER];
+			if (notSingleLines.contains(stack.last())) return;
 
+			// logPos(token.printTokenTree(), token.pos, INFO);
 			for (child in token.children) { //check if there is a block
+				// logPos(child.tok + "", token.pos, INFO);
 				switch (child.tok) {
 					case BrOpen:
 						if (contextOfBrOpen(child) == BLOCK) return;
@@ -155,7 +162,7 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 			}
 			stack.add(SINGLELINE);
 		}
-		// var originalToken = token;
+		var originalToken = token;
 		while (token.tok != null) {
 			switch (token.tok) {
 				case At: stack.add(META);
@@ -175,11 +182,12 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 				case Kwd(KwdWhile), Kwd(KwdDo): addSinglelineIfNeeded(); stack.add(WHILE);
 				case Kwd(KwdFor): addSinglelineIfNeeded(); stack.add(FOR);
 				case Kwd(KwdFunction): addSinglelineIfNeeded(); stack.add(FUNCTION);
-				case BkOpen: stack.add(ARRAY_ACCESS);
+				case Kwd(KwdVar): stack.add(contextOfVar(token));
+				case BkOpen: stack.add(contextOfBkOpen(token));
 				case BrOpen: stack.add(contextOfBrOpen(token));
 				case POpen: stack.add(contextOfPOpen(token));
 				case Binop(OpLt):
-					if (TokenTreeCheckUtils.isTypeParameter(token)) stack.add(TYPE_PARAMETER);
+					if (token.isTypeParameter()) stack.add(TYPE_PARAMETER);
 				default:
 			}
 			token = token.parent;
@@ -188,9 +196,36 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 		return stack;
 	}
 
+	function contextOfBkOpen(token:TokenTree):TokenContext {
+		if (token.parent.tok != null) {
+			switch (token.parent.tok) {
+				case Const(CIdent(_)): return ARRAY_ACCESS;
+				default:
+			}
+		}
+
+		if (!token.hasChildren()) return ARRAY;
+		if (token.children.oneHasChild(Binop(OpArrow))) return MAP;
+
+		return ARRAY;
+	}
+
+	function contextOfVar(token:TokenTree):TokenContext {
+		if (!token.hasChildren()) return VAR; //should not happen
+
+		// logPos(token.printTokenTree(), token.pos, INFO);
+		for (child in token.children) {
+			switch (child.tok) {
+				case Const(CIdent(_)):
+					if (child.children.exists(function (t) return t.is(POpen))) return PROPERTY;
+				default:
+			}
+		}
+		return VAR;
+	}
+
 	function contextOfBrOpen(token:TokenTree):TokenContext {
 		//count number of children without comments
-
 		var numChildren = 0;
 		if (token.hasChildren()) {
 			//anonymous structure can only contain a sequence of identifiers and commas
@@ -198,7 +233,7 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 				switch (child.tok) {
 					case Const(CIdent(_)):
 						numChildren++;
-						if (child.children[0].tok != DblDot) return BLOCK;
+						if (!child.children.exists(function (t) return t.tok == DblDot)) return BLOCK;
 					case Comma: numChildren++;
 					case Comment(_), CommentLine(_):
 					case BrClose:
@@ -212,7 +247,7 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 		}
 		else { //empty, look at what is done with it
 			var parent = token.parent;
-			//TODO: token tree seems to be incorrect if there are comments inbetween object and assignment
+			//TODO: token tree seems to be incorrect (see #363)
 			//ignore comments
 			while (parent.tok != null) {
 				switch (parent.tok) {
@@ -243,10 +278,18 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 				case Binop(OpAssign), Binop(OpAssignOp(_)): return COND;
 				case Kwd(KwdVar): return PROPERTY;
 				case Kwd(KwdIf), Kwd(KwdFor), Kwd(KwdWhile), Kwd(KwdSwitch), Kwd(KwdCase): return COND;
+				case BrOpen: return contextOfBrOpen(token);
 				case Const(CIdent(_)):
-					if (token.parent.tok == null || !token.parent.tok.match(Kwd(KwdFunction)) || token.parent.children[0].tok == POpen) return FUNCTION_CALL;
+					if (token.hasChildren() &&
+						token.children.exists(function (t) return t.tok == POpen) &&
+						!token.parent.tok.match(Kwd(KwdFunction)) &&
+						!token.parent.tok.match(Kwd(KwdVar))) {
+							// logPos(token.printTokenTree(), token.pos, INFO);
+							return FUNCTION_CALL;
+					}
 				default:
 			}
+			// logPos(token.tok + "", token.pos, INFO);
 			token = token.parent;
 		}
 		return null;
@@ -356,7 +399,7 @@ abstract ContextSelector(ContextSelectorEnum) to ContextSelectorEnum {
 			case "*":
 				return parseToken(PLACEHOLDER, current - 1, tokens);
 			default:
-				return parseToken(CONTEXT(cast token), current - 1, tokens); //TODO: validate token is an existing context
+				return parseToken(CONTEXT(cast token), current - 1, tokens);
 		}
 	}
 }
@@ -372,7 +415,7 @@ abstract TokenContext(String) to String {
 	var FUNCTION = "Function"; //only applies to the function header
 	var FUNCTION_PARAM = "Parameters";
 	var FUNCTION_CALL = "Call";
-	var FIELD = "Field";
+	var VAR = "Var";
 	var PROPERTY = "Property";
 	var BLOCK = "Block";
 	var IF_ELSE = "IfElse";
@@ -382,7 +425,9 @@ abstract TokenContext(String) to String {
 	var SWITCH = "Switch";
 	var CASE = "Case";
 	var TRY_CATCH = "TryCatch";
-	var ARRAY_ACCESS = "Array";
+	var ARRAY = "Array";
+	var MAP = "Map";
+	var ARRAY_ACCESS = "ArrayAccess";
 	var REIFICATION = "Reification";
 	var TYPE_PARAMETER = "TypeParameter";
 	var META = "Meta";
@@ -413,5 +458,7 @@ abstract WhitespaceToken(String) {
 	var DOT = ".";
 	var INTERVAL = "...";
 	var FUNCTION_ARROW = "->";
-	//TODO: should all possible tokens be added seperately? (e.g. += or <=)
+	var LT = "<";
+	var GT = ">";
+	//should all possible tokens be added seperately? (e.g. += or <=)
 }

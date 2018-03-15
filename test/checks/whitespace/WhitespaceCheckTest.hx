@@ -8,6 +8,9 @@ class WhitespaceCheckTest extends CheckTestCase<WhitespaceCheckTests> {
 	static inline var MSG_EQUALS:String = 'Whitespace policy "around" violated by "="';
 	static inline var MSG_POPEN:String = 'Whitespace policy "around" violated by "("';
 	static inline var MSG_COLON:String = 'Whitespace policy "around" violated by ":"';
+	static inline var MSG_BROPEN:String = 'Whitespace policy "around" violated by "{"';
+	static inline var MSG_LT:String = 'Whitespace policy "around" violated by "<"';
+	static inline var MSG_GT:String = 'Whitespace policy "around" violated by ">"';
 
 	public function testCorrectWhitespace() {
 		var check = new WhitespaceCheck();
@@ -61,15 +64,41 @@ class WhitespaceCheckTest extends CheckTestCase<WhitespaceCheckTests> {
 		assertNoMsg(check, NO_WHITESPACE_TYPEDEF);
 		assertNoMsg(check, NO_WHITESPACE_VAR_INIT);
 
-		check.tokens = [POPEN, cast ":"];
+		check.tokens = [POPEN, DBLDOT];
 		assertNoMsg(check, WHITESPACE_FUNCTION);
 		assertMsg(check, NO_WHITESPACE_AROUND_FUNCTION_POPEN, MSG_POPEN);
 		assertMsg(check, NO_WHITESPACE_AROUND_FUNCTION_COLON, MSG_COLON);
 
 		check.contexts = [CLASS];
-
 		check.tokens = [BROPEN, BRCLOSE];
 		assertNoMsg(check, CORRECT_WHITESPACE_AROUND);
+
+		check.tokens = [BROPEN];
+		check.contexts = ["Object>Object"];
+		assertMsg(check, NESTED_OBJECT, MSG_BROPEN);
+
+		check.tokens = [ARITHMETIC];
+		check.contexts = [BLOCK];
+		assertNoMsg(check, MATHS_IN_BLOCK);
+
+		check.tokens = [DBLDOT];
+		check.contexts = [FUNCTION];
+		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_COLON);
+		check.contexts = [FUNCTION_PARAM];
+		assertNoMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS);
+		check.contexts = [OBJECT_DECL];
+		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_COLON);
+
+		check.tokens = [LT, GT];
+		check.contexts = ["Parameters>TypeParameter"];
+		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_LT);
+		check.contexts = ["Function>TypeParameter"];
+		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_GT);
+
+		check.contexts = ["Array"];
+		assertMsg(check, ARRAY_MAP_RECOGNITION, MSG_LT);
+		check.contexts = ["Map"];
+		assertNoMsg(check, ARRAY_MAP_RECOGNITION);
 	}
 
 	public function testStarImport() {
@@ -324,9 +353,47 @@ abstract WhitespaceCheckTests(String) to String {
 		function test(a : String ) {
 		}
 	}";
+
 	var NO_WHITESPACE_AROUND_FUNCTION_COLON = "
 	class Test {
 		function test (a:String) {
 		}
+	}";
+
+	var NESTED_OBJECT = "
+	class Test {
+		public static function getExample():ExampleDef {
+			return {
+				a: 'test',
+				b:{
+					c: 2
+				}
+			};
+		}
+	}";
+
+	var MATHS_IN_BLOCK = "
+	class Test {
+		function test(vars:Map<String, Dynamic>):Array<Dynamic> {
+			return 0 - (2 + -3);
+		}
+	}";
+
+	var DIFFERENT_COLONS_AND_TYPEPARAMS = "
+	class Test {
+		function test(vars : Map<String, Dynamic > ) :Array < Dynamic> {
+			return {
+				name: varName,
+                type : {
+                    0 - (2 + -3);
+                }
+			};
+		}
+	}";
+
+	var ARRAY_MAP_RECOGNITION = "
+	class Test {
+		var arrayTest = [true, false, 0<6];
+		var mapTest = ['a' => true, 'test' => 3 < 2];
 	}";
 }
