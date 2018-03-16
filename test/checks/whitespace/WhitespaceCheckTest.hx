@@ -69,6 +69,9 @@ class WhitespaceCheckTest extends CheckTestCase<WhitespaceCheckTests> {
 		assertMsg(check, NO_WHITESPACE_AROUND_FUNCTION_POPEN, MSG_POPEN);
 		assertMsg(check, NO_WHITESPACE_AROUND_FUNCTION_COLON, MSG_COLON);
 
+		check.contexts = [META];
+		assertMsg(check, META_RECOGNITION, MSG_POPEN);
+
 		check.contexts = [CLASS];
 		check.tokens = [BROPEN, BRCLOSE];
 		assertNoMsg(check, CORRECT_WHITESPACE_AROUND);
@@ -99,6 +102,14 @@ class WhitespaceCheckTest extends CheckTestCase<WhitespaceCheckTests> {
 		assertMsg(check, ARRAY_MAP_RECOGNITION, MSG_LT);
 		check.contexts = ["Map"];
 		assertNoMsg(check, ARRAY_MAP_RECOGNITION);
+	}
+
+	public function testMultiplePolicies() {
+		var check = new WhitespaceCheck();
+		check.policies = [NONE_AFTER];
+		check.tokens = [POPEN];
+		check.contexts = ["Parameters"];
+		assertNoMsg(check, NO_WHITESPACE_AROUND_FUNCTION_COLON);
 	}
 
 	public function testStarImport() {
@@ -395,5 +406,10 @@ abstract WhitespaceCheckTests(String) to String {
 	class Test {
 		var arrayTest = [true, false, 0<6];
 		var mapTest = ['a' => true, 'test' => 3 < 2];
+	}";
+
+	var META_RECOGNITION = "
+	class Test {
+		@test( 'test' ) var t = null;
 	}";
 }
