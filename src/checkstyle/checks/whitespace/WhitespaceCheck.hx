@@ -129,6 +129,7 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 	function checkTokensAdvanced(root:TokenTree, toks:Array<TokenDef>) {
 		if (policies == null || policies.empty() || policies.contains(IGNORE)) return;
 		var tokenList:Array<TokenTree> = root.filter(toks, ALL);
+		trace(root.printTokenTree());
 		checkTokenListAdvanced(tokenList);
 	}
 
@@ -210,7 +211,7 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 		}
 		while (token.tok != null) {
 			switch (token.tok) {
-				case At: stack.add(META);
+				//case At: stack.add(META);
 				case Dollar(_): stack.add(REIFICATION);
 				case Kwd(KwdImport): stack.add(IMPORT);
 				case Kwd(KwdUsing): stack.add(USING);
@@ -238,8 +239,13 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 			}
 			token = token.parent;
 		}
+		
 		return stack;
 	}
+	
+	/*function contextOfQuestion(token:TokenTree):TokenContext {
+		if (token.hasChild(DblDot))
+	}*/
 
 	function contextOfBkOpen(token:TokenTree):TokenContext {
 		if (token.parent.tok != null) {
@@ -329,9 +335,12 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 					if (token.hasChildren() &&
 						token.children.exists(function (t) return t.tok == POpen) &&
 						!token.parent.tok.match(Kwd(KwdFunction)) &&
-						!token.parent.tok.match(Kwd(KwdVar)) &&
-						!token.parent.tok.match(At)) {
-							return FUNCTION_CALL;
+						!token.parent.is(Kwd(KwdVar)) &&
+						!token.parent.is(At)) {
+						
+						if (token.parent.is(BrOpen) && token.parent.parent.parent.is(Kwd(KwdEnum)))
+							return FUNCTION_PARAM;
+						return FUNCTION_CALL;
 					}
 				default:
 			}
@@ -484,6 +493,7 @@ abstract TokenContext(String) to String {
 	var IMPORT = "Import";
 	var USING = "Using";
 	var PARENTHESES = "Parentheses"; //generic parentheses (e.g. for grouping boolean expressions)
+	var TERNARY = "Ternary";
 }
 
 @:enum
