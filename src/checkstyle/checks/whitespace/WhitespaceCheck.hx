@@ -5,8 +5,6 @@ import checkstyle.token.TokenTree;
 using Lambda;
 using checkstyle.utils.TokenTreeCheckUtils;
 
-//TODO: Short lambdas (check every use of KwdFunction and FUNCTION)
-
 @name("Whitespace")
 @desc("Checks that whitespace is present or absent around a token in a specific context.")
 class WhitespaceCheck extends WhitespaceCheckBase {
@@ -118,6 +116,8 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 					tokenList.push(Binop(OpLt));
 				case GT:
 					tokenList.push(Binop(OpGt));
+				case QUESTION:
+					tokenList.push(Question);
 			}
 		}
 		if (tokenList.length <= 0) return;
@@ -129,7 +129,6 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 	function checkTokensAdvanced(root:TokenTree, toks:Array<TokenDef>) {
 		if (policies == null || policies.empty() || policies.contains(IGNORE)) return;
 		var tokenList:Array<TokenTree> = root.filter(toks, ALL);
-		trace(root.printTokenTree());
 		checkTokenListAdvanced(tokenList);
 	}
 
@@ -209,11 +208,6 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 			}
 			stack.add(SINGLELINE);
 		}
-		var originalToken = token;
-		/*while (token.tok != null) {
-			switch (token.tok) {
-		}*/
-		
 		while (token.tok != null) {
 			switch (token.tok) {
 				case At: stack.add(META);
@@ -238,14 +232,12 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 				case BkOpen: stack.add(contextOfBkOpen(token));
 				case BrOpen: stack.add(contextOfBrOpen(token));
 				case POpen: stack.add(contextOfPOpen(token));
-				//case Question: stack.add(TERNARY);
 				case Binop(OpLt):
 					if (token.isTypeParameter()) stack.add(TYPE_PARAMETER);
 				default:
 			}
 			token = token.parent;
 		}
-		// logPos("" + stack, originalToken.pos, INFO);
 		return stack;
 	}
 
@@ -266,7 +258,6 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 	function contextOfVar(token:TokenTree):TokenContext {
 		if (!token.hasChildren()) return VAR; //should not happen
 
-		// logPos(token.printTokenTree(), token.pos, INFO);
 		for (child in token.children) {
 			switch (child.tok) {
 				case Const(CIdent(_)):
@@ -492,7 +483,6 @@ abstract TokenContext(String) to String {
 	var PACKAGE = "Package";
 	var IMPORT = "Import";
 	var USING = "Using";
-	//var TERNARY = "Ternary"; //TODO: check how to implement this properly
 	var PARENTHESES = "Parentheses"; //generic parentheses (e.g. for grouping boolean expressions)
 }
 
@@ -514,6 +504,7 @@ abstract WhitespaceToken(String) {
 	var BKOPEN = "[";
 	var BKCLOSE = "]";
 	var DBLDOT = ":";
+	var QUESTION = "?";
 	var DOT = ".";
 	var INTERVAL = "...";
 	var FUNCTION_ARROW = "->";
