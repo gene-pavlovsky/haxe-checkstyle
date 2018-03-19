@@ -528,6 +528,36 @@
 		},
 		{
 			"props": {
+				"policies": [
+					"around"
+				],
+				"tokens": [
+					"=>",
+					"Assign",
+					"Unary",
+					"Compare",
+					"Bitwise",
+					"Bool"
+				],
+				"contexts": [
+					"Object",
+					"Function",
+					"Var",
+					"Switch",
+					"TryCatch",
+					"ArrayAccess",
+					"Block",
+					"Class",
+					"Interface",
+					"Typedef",
+					"Abstract",
+					"Enum"
+				]
+			},
+			"type": "Whitespace"
+		},
+		{
+			"props": {
 				"tokens": [
 					",",
 					";"
