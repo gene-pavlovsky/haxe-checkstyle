@@ -2,8 +2,13 @@ package checkstyle.token.walk;
 
 class WalkStatement {
 	public static function walkStatement(stream:TokenStream, parent:TokenTree) {
+		WalkComment.walkComment(stream, parent);
+
+		var tempStore:Array<TokenTree> = [];
 		var wantMore:Bool = true;
 		switch (stream.token()) {
+			case At:
+				tempStore.push(WalkAt.walkAt(stream));
 			case Binop(OpSub):
 				WalkBinopSub.walkBinopSub(stream, parent);
 				return;
@@ -62,6 +67,7 @@ class WalkStatement {
 		}
 		var newChild:TokenTree = stream.consumeToken();
 		parent.addChild(newChild);
+		for (tok in tempStore) newChild.addChild(tok);
 		if (wantMore) WalkStatement.walkStatement(stream, newChild);
 		WalkStatement.walkStatementContinue(stream, newChild);
 	}
