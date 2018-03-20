@@ -1,33 +1,37 @@
 package checkstyle.checks.whitespace;
 
 import checkstyle.token.TokenTree;
+import checkstyle.checks.whitespace.WhitespaceCheckBase.WhitespacePolicyCheck;
 
 using Lambda;
 using checkstyle.utils.TokenTreeCheckUtils;
 
 @name("Whitespace")
 @desc("Checks that whitespace is present or absent around a token in a specific context.")
-class WhitespaceCheck extends WhitespaceCheckBase {
+class WhitespaceCheck extends Check {
 
 	//TODO: cannot differentiate between: ") {" and ")"
+	//TODO: array comprehension
 
 	public var policies:Array<AdvancedWhitespacePolicy>;
 	public var tokens:Array<WhitespaceToken>;
 	public var contexts:Array<String>;
+	public var ignore:Array<WhitespaceType>;
 
 	var convertedContexts:Array<ContextSelector>;
 
 	public function new() {
-		super();
+		super(TOKEN);
 
 		tokens = [
 			MAP_ARROW, ASSIGN, UNARY, COMPARE, BITWISE, BOOL
 		];
 		policies = [AROUND];
 		contexts = [OBJECT_DECL, FUNCTION, VAR, SWITCH, TRY_CATCH, ARRAY_ACCESS, BLOCK, CLASS, INTERFACE, TYPEDEF, ABSTRACT, ENUM];
+		ignore = [];
 	}
 
-	override function violation(tok:TokenTree, p:String) {
+	function violation(tok:TokenTree, p:String) {
 		logPos('Whitespace policy "$p" violated by "${TokenDefPrinter.toString(tok.tok)}"', tok.pos);
 	}
 
@@ -129,7 +133,6 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 	function checkTokensAdvanced(root:TokenTree, toks:Array<TokenDef>) {
 		if (policies == null || policies.empty() || policies.contains(IGNORE)) return;
 		var tokenList:Array<TokenTree> = root.filter(toks, ALL);
-		trace(root.printTokenTree());
 		checkTokenListAdvanced(tokenList);
 	}
 
@@ -141,9 +144,41 @@ class WhitespaceCheck extends WhitespaceCheckBase {
 			checkWhitespaceAdvanced(tok);
 		}
 	}
+	
+	function checkWhitespaceExtAdvanced(tok:TokenTree, checkCallback:WhitespacePolicyCheck) {
+		var linePos:LinePos = checker.getLinePos(tok.pos.min);
+		var tokLen:Int = tok.toString().length;
+		if (tok.tok.match(IntInterval(_))) {
+			linePos = checker.getLinePos(tok.pos.max - 3);
+			tokLen = 3;
+		}
+		var line:String = checker.lines[linePos.line];
+		var before:String = line.substr(0, linePos.ofs);
+		var after:String = line.substr(linePos.ofs + tokLen);
+		
+		if (ignore.contains(SPACE)) {
+			before = before.replace(" ", "");
+			after = after.replace(" ", "");
+		}
+		if (ignore.contains(TAB)) {
+			before = before.replace("\t", "");
+			after = after.replace("\t", "");
+		}
+		
+		var whitespaceBefore:Bool = ~/^(.*\s|)$/.match(before);
+		var whitespaceAfter:Bool = ~/^(\s.*|)$/.match(after);
+		
+		if (ignore.contains(NEWLINE)) {
+			if (before == "") whitespaceBefore = false;
+			if (after == "") whitespaceAfter = false;
+		}
+		//logPos('$whitespaceAfter "' + after + '"', tok.pos, INFO);
+
+		checkCallback(whitespaceBefore, whitespaceAfter);
+	}
 
 	function checkWhitespaceAdvanced(tok:TokenTree) {
-		checkWhitespaceExt(tok, function(before:Bool, after:Bool) {
+		checkWhitespaceExtAdvanced(tok, function(before:Bool, after:Bool) {
 			var v = function (p:AdvancedWhitespacePolicy) violation(tok, Std.string(p));
 			for (p in policies) {
 				switch (p) {
@@ -521,4 +556,11 @@ abstract WhitespaceToken(String) {
 	var LT = "<";
 	var GT = ">";
 	//should all possible tokens be added seperately? (e.g. += or <=)
+}
+
+@:enum
+abstract WhitespaceType(String) {
+	var NEWLINE = "nl";
+	var SPACE = "space";
+	var TAB = "tab";
 }
