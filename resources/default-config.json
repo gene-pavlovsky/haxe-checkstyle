@@ -502,6 +502,17 @@
 		},
 		{
 			"props": {
+				"forceIndent": false,
+				"tokens": [
+					"extends",
+					"implements"
+				],
+				"option": "nl"
+			},
+			"type": "TypeHeaderWrap"
+		},
+		{
+			"props": {
 				"ignoreExtern": true,
 				"format": "^[A-Z]+[a-zA-Z0-9]*$",
 				"tokens": []
