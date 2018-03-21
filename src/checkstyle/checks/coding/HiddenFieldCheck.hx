@@ -9,10 +9,12 @@ class HiddenFieldCheck extends Check {
 	public var ignoreConstructorParameter:Bool;
 	public var ignoreSetter:Bool;
 	public var ignoreFormat:String;
+	public var ignoreMethodParameter:Bool;
 
 	public function new() {
 		super(TOKEN);
 		ignoreConstructorParameter = true;
+		ignoreMethodParameter = false;
 		ignoreSetter = true;
 		ignoreFormat = "^(main|run)$";
 		categories = [Category.COMPLEXITY, Category.CLARITY, Category.BUG_RISK];
@@ -49,8 +51,7 @@ class HiddenFieldCheck extends Check {
 			case Kwd(KwdNew): if (ignoreFormatRE.match("new")) return;
 			default:
 		}
-
-		checkParams(method, memberNames);
+		if (!ignoreMethodParameter) checkParams(method, memberNames);
 		checkVars(method, memberNames);
 		checkForLoops(method, memberNames);
 	}

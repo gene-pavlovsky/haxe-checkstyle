@@ -129,6 +129,7 @@
 		{
 			"props": {
 				"ignoreSetter": true,
+				"ignoreMethodParameter": false,
 				"ignoreFormat": "^(main|run)$",
 				"ignoreConstructorParameter": true
 			},
