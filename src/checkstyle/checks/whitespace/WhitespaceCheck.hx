@@ -244,9 +244,12 @@ class WhitespaceCheck extends Check {
 			}
 			stack.add(SINGLELINE);
 		}
+		//var originalToken = token;
 		while (token.tok != null) {
 			switch (token.tok) {
 				//case At: stack.add(META);
+				//TODO: ternary detection will not work for anything before the question mark
+				case Question: if (token.isTernary()) stack.add(TERNARY);
 				case Dollar(_): stack.add(REIFICATION);
 				case Kwd(KwdImport): stack.add(IMPORT);
 				case Kwd(KwdUsing): stack.add(USING);
@@ -274,6 +277,8 @@ class WhitespaceCheck extends Check {
 			}
 			token = token.parent;
 		}
+		//logPos(originalToken.printTokenTree(), originalToken.pos, INFO);
+		//logPos(originalToken.tok + " " + stack, originalToken.pos, INFO);
 
 		return stack;
 	}

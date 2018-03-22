@@ -42,22 +42,35 @@ class TypeHeaderWrapCheck extends WrapCheckBase {
 			if (TokenTreeCheckUtils.filterOpSub(tok)) continue;
 
 			var linePos:LinePos = checker.getLinePos(tok.pos.min);
-			var parentLine:String = tok.parent.tok != null ? checker.lines[checker.getLinePos(tok.parent.pos.max).line] : "";
+			var parent:TokenTree = getParent(tok);
+			var parentLine:String = parent.tok != null ? checker.lines[checker.getLinePos(parent.pos.max).line] : "";
 			var nextLine:String = linePos.line + 1 < checker.lines.length ? checker.lines[linePos.line + 1] : "";
 			var whitespaceRE:EReg = ~/(^\s*)/;
 			whitespaceRE.match(parentLine);
-			var parentIndention = whitespaceRE.matched(1).length;
+			var parentIndentation = whitespaceRE.matched(1).length;
 			whitespaceRE.match(nextLine);
 			var nextLineIndention = whitespaceRE.matched(1).length;
 
-			if (forceIndent && option == NL && linePos.ofs <= parentIndention) {
+			if (forceIndent && option == NL && linePos.ofs <= parentIndentation) {
 				logPos('Token "$tok" must be indented more', tok.pos);
 				continue;
 			}
-			if (forceIndent && option == EOL && nextLineIndention <= parentIndention ) {
+			if (forceIndent && option == EOL && nextLineIndention <= parentIndentation ) {
 				logPos("Next line must be indented more", tok.pos);
 				continue;
 			}
 		}
+	}
+
+	function getParent(token:TokenTree):TokenTree {
+		var parentTok:TokenTree = token.parent;
+		while (parentTok.tok != null) {
+			switch (parentTok.tok) {
+				case Kwd(KwdImplements) | Kwd(KwdExtends) | Comment(_) | CommentLine(_):
+				default: break;
+			}
+			parentTok = parentTok.parent;
+		}
+		return parentTok;
 	}
 }
