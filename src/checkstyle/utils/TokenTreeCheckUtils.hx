@@ -1,6 +1,16 @@
 package checkstyle.utils;
 
+using Lambda;
+
 class TokenTreeCheckUtils {
+
+	public static function hasChild(parent:TokenTree, child:TokenDef):Bool {
+		return parent.hasChildren() && parent.children.exists(function (t) return t.is(Binop(OpArrow)));
+	}
+
+	public static function oneHasChild(tokens:Iterable<TokenTree>, child:TokenDef):Bool {
+		return tokens != null && tokens.exists(hasChild.bind(_, child));
+	}
 
 	public static function isImportMult(token:TokenTree):Bool {
 		return switch (token.tok) {
