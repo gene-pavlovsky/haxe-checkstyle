@@ -27,45 +27,28 @@ class UnnecessaryThisCheck extends Check {
 		for (clazz in classes) {
 			for (field in clazz) {
 				switch (field.kind) {
-					case FFun(fun): checkFunction(fun);
+					case FFun(fun): checkExpr(fun.expr, fun.args);
 					default:
 				}
 			}
 		}
 	}
 
-	inline function checkFunction(fun:Function) {
-		checkExpr(fun.expr, fun);
-	}
-
-	function checkExpr(expr:Expr, context:Function) {
+	function checkExpr(expr:Expr, context:Array<FunctionArg>) {
 		switch (expr.expr) {
 			case EFunction(_, f):
-				checkExpr(f.expr, f);
+				checkExpr(f.expr, context.concat(f.args));
 			case EField({expr: EConst(CIdent("this")), pos: pos}, name):
-				if (isPosSuppressed(pos)) return;
-				if (!context.args.exists(function(a) return a.name == name)) {
-					logPos('Unnecessary "this" detected', pos);
-				}
+				checkThisAccess(name, context, pos);
 			default:
 				ExprTools.iter(expr, checkExpr.bind(_, context));
 		}
 	}
 
-	function checkThis(token:TokenTree) {
-		if (!token.hasChildren()) return;
-
-		trace(token.children);
-		var dot = token.getChild(Dot);
-		if (dot != null && dot.hasChildren()) {
-			for (c in dot.children) {
-				switch (c.tok) {
-					case Const(CIdent(name)):
-						//name is only allowed if it is shadowed
-
-					default: //allowed
-				}
-			}
+	function checkThisAccess(name:String, context:Array<FunctionArg>, pos:Position) {
+		if (isPosSuppressed(pos)) return;
+		if (!context.exists(function(a) return a.name == name)) {
+			logPos('Unnecessary "this" detected', pos);
 		}
 	}
 }

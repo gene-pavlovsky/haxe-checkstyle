@@ -56,6 +56,7 @@ abstract UnnecessaryThisCheckTests(String) to String {
 		public function test(field1:Int) {
 			var f = function (field2:Int) {
 				this.field2 = field2;
+				this.field1 = field2;
 			}
 
 			f(this.field1);
