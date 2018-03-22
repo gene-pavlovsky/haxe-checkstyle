@@ -42,6 +42,9 @@ abstract UnnecessaryThisCheckTests(String) to String {
 		}
 		public function test(value:Int) {
 			field2 = value;
+
+			var field2 = '';
+			this.field2 = 1;
 		}
 		@SuppressWarnings('checkstyle:UnnecessaryThis')
 		public function test(val:Int) {
@@ -53,10 +56,13 @@ abstract UnnecessaryThisCheckTests(String) to String {
 	class Test {
 		var field1:Int;
 		var field2:Int = 1;
+		var field3:Int = 2;
 		public function test(field1:Int) {
+			var field3:String = '';
 			var f = function (field2:Int) {
 				this.field2 = field2;
 				this.field1 = field2;
+				this.field3 = field2;
 			}
 
 			f(this.field1);

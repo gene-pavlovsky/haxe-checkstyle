@@ -2,9 +2,6 @@ package checkstyle.checks.coding;
 
 import haxe.macro.ExprTools;
 
-using checkstyle.utils.TokenTreeCheckUtils;
-using Lambda;
-
 @name("UnnecessaryThis")
 @desc("Checks that `this` is only used if actually necessary.")
 class UnnecessaryThisCheck extends Check {
@@ -27,17 +24,23 @@ class UnnecessaryThisCheck extends Check {
 		for (clazz in classes) {
 			for (field in clazz) {
 				switch (field.kind) {
-					case FFun(fun): checkExpr(fun.expr, fun.args);
+					case FFun(fun): checkExpr(fun.expr, varsToString(fun.args));
 					default:
 				}
 			}
 		}
 	}
 
-	function checkExpr(expr:Expr, context:Array<FunctionArg>) {
+	function checkExpr(expr:Expr, context:Array<String>) {
 		switch (expr.expr) {
+			case EVars(vars):
+				for (v in vars) {
+					context.push(v.name);
+					checkExpr(v.expr, context);
+				}
 			case EFunction(_, f):
-				checkExpr(f.expr, context.concat(f.args));
+				var newContext = context.concat(varsToString(f.args));
+				checkExpr(f.expr, newContext);
 			case EField({expr: EConst(CIdent("this")), pos: pos}, name):
 				checkThisAccess(name, context, pos);
 			default:
@@ -45,9 +48,14 @@ class UnnecessaryThisCheck extends Check {
 		}
 	}
 
-	function checkThisAccess(name:String, context:Array<FunctionArg>, pos:Position) {
+	function varsToString(vars:Array<{name:String}>):Array<String> {
+		return vars.map(function (v) return v.name);
+	}
+
+	function checkThisAccess(name:String, context:Array<String>, pos:Position) {
 		if (isPosSuppressed(pos)) return;
-		if (!context.exists(function(a) return a.name == name)) {
+
+		if (!context.contains(name)) {
 			logPos('Unnecessary "this" detected', pos);
 		}
 	}
