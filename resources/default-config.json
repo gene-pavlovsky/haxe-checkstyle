@@ -218,6 +218,7 @@
 			"props": {
 				"ignoreExtern": true,
 				"format": "^[a-z][a-zA-Z0-9]*$",
+				"allowUnderscorePropertyBackingVar": false,
 				"tokens": []
 			},
 			"type": "MemberName"

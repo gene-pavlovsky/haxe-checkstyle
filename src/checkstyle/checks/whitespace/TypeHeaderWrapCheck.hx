@@ -7,7 +7,7 @@ import checkstyle.utils.TokenTreeCheckUtils;
 class TypeHeaderWrapCheck extends WrapCheckBase {
 
 	public var forceIndent:Bool;
-	
+
 	public function new() {
 		super();
 		option = NL;
@@ -28,11 +28,10 @@ class TypeHeaderWrapCheck extends WrapCheckBase {
 		if (tokenList.length <= 0) return;
 		checkTokens(tokenList);
 	}
-	
-	override function checkTokens(tokenList:Array<TokenDef>) 
-	{
+
+	override function checkTokens(tokenList:Array<TokenDef>) {
 		super.checkTokens(tokenList);
-		
+
 		var root:TokenTree = checker.getTokenTree();
 		var allTokens:Array<TokenTree> = root.filter(tokenList, ALL);
 
@@ -50,13 +49,13 @@ class TypeHeaderWrapCheck extends WrapCheckBase {
 			var parentIndention = whitespaceRE.matched(1).length;
 			whitespaceRE.match(nextLine);
 			var nextLineIndention = whitespaceRE.matched(1).length;
-			
+
 			if (forceIndent && option == NL && linePos.ofs <= parentIndention) {
 				logPos('Token "$tok" must be indented more', tok.pos);
 				continue;
 			}
 			if (forceIndent && option == EOL && nextLineIndention <= parentIndention ) {
-				logPos('Next line must be indented more', tok.pos);
+				logPos("Next line must be indented more", tok.pos);
 				continue;
 			}
 		}

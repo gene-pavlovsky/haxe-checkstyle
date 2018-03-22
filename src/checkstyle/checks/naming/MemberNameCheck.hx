@@ -4,9 +4,12 @@ package checkstyle.checks.naming;
 @desc("Checks that instance variable names conform to a format specified by the `format` property.")
 class MemberNameCheck extends NameCheckBase<MemberNameCheckToken> {
 
+	public var allowUnderscorePropertyBackingVar:Bool;
+
 	public function new() {
 		super();
 		format = "^[a-z][a-zA-Z0-9]*$";
+		allowUnderscorePropertyBackingVar = false;
 	}
 
 	override function checkClassType(decl:TypeDef, d:Definition<ClassFlag, Array<Field>>, pos:Position) {
@@ -50,11 +53,24 @@ class MemberNameCheck extends NameCheckBase<MemberNameCheckToken> {
 			if (isCheckSuppressed(field)) continue;
 			switch (field.kind) {
 				case FVar(t, e):
-					checkField(field, t, e, p);
+					//default to checkField if allowUnderscorePropertyBackingVar is not specified
+					if (allowUnderscorePropertyBackingVar && Lambda.exists(d, isPropertyWithName.bind(_, field.name.substr(1)))) {
+						checkPropertyBackingVar(field, t, e, p);
+					}
+					else {
+						checkField(field, t, e, p);
+					}
 				case FProp(_, _, t, e):
 					checkField(field, t, e, p);
 				default:
 			}
+		}
+	}
+
+	function isPropertyWithName(field:Field, name:String):Bool {
+		switch (field.kind) {
+			case FProp(_, _, t, e): return field.name == name;
+			default: return false;
 		}
 	}
 
@@ -71,6 +87,19 @@ class MemberNameCheck extends NameCheckBase<MemberNameCheckToken> {
 
 	function checkEnumFields(d:Array<EnumConstructor>) {
 		for (field in d) matchTypeName("enum member", field.name, field.pos);
+	}
+
+	function checkPropertyBackingVar(f:Field, t:ComplexType, e:Expr, p:ParentType) {
+		if (f.isStatic(p)) return;
+		if (hasToken(PUBLIC) || hasToken(PRIVATE)) {
+			// with PUBLIC or PRIVATE set, only look at fields with matching access modifiers
+			if (!hasToken(PUBLIC) && f.isPublic(p)) return;
+			if (!hasToken(PRIVATE) && f.isPrivate(p)) return;
+		}
+
+		if (!formatRE.match(f.name.substr(1))) {
+			warn("member", f.name, f.pos);
+		}
 	}
 
 	function checkField(f:Field, t:ComplexType, e:Expr, p:ParentType) {

@@ -9,8 +9,7 @@ class TypeHeaderWrapCheckTest extends CheckTestCase<TypeHeaderWrapCheckTests> {
 	static inline var MSG_EXTENDS_NL:String = 'Token "extends" must be on a new line';
 	static inline var MSG_IMPLEMENTS_NL:String = 'Token "implements" must be on a new line';
 	static inline var MSG_INDENTATION_NL_IMPLEMENTS:String = 'Token "implements" must be indented more';
-	
-	
+
 	public function testCorrectWrap() {
 		var check = new TypeHeaderWrapCheck();
 		assertNoMsg(check, CORRECT_NL_WRAP);
@@ -29,7 +28,7 @@ class TypeHeaderWrapCheckTest extends CheckTestCase<TypeHeaderWrapCheckTests> {
 		assertNoMsg(check, CORRECT_EOL_WRAP);
 		assertMsg(check, CORRECT_EOL_WRAP_EXTENDS, MSG_IMPLEMENTS_EOL);
 	}
-	
+
 	public function testForceIndent() {
 		var check = new TypeHeaderWrapCheck();
 		check.forceIndent = true;
@@ -47,7 +46,7 @@ abstract TypeHeaderWrapCheckTests(String) to String {
 		implements B
 	{
 	}";
-	
+
 	var CORRECT_EOL_WRAP = "
 	class Test extends
 		A implements
@@ -61,7 +60,7 @@ abstract TypeHeaderWrapCheckTests(String) to String {
 		implements B
 	{
 	}";
-	
+
 	var INCORRECT_NL_WRAP_IMPLEMENTS = "
 	class Test extends A implements
 		B
