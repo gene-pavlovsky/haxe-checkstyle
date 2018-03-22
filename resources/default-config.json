@@ -525,6 +525,10 @@
 			"type": "UnnecessaryConstructor"
 		},
 		{
+			"props": {},
+			"type": "UnnecessaryThis"
+		},
+		{
 			"props": {
 				"moduleTypeMap": {},
 				"ignoreModules": []
@@ -552,6 +556,7 @@
 					"Bitwise",
 					"Bool"
 				],
+				"ignore": [],
 				"contexts": [
 					"Object",
 					"Function",

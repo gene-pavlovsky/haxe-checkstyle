@@ -5,7 +5,11 @@ using Lambda;
 class TokenTreeCheckUtils {
 
 	public static function hasChild(parent:TokenTree, child:TokenDef):Bool {
-		return parent.hasChildren() && parent.children.exists(function (t) return t.is(Binop(OpArrow)));
+		return parent.hasChildren() && parent.children.exists(function (t) return t.is(child));
+	}
+
+	public static function getChild(parent:TokenTree, child:TokenDef):TokenTree {
+		return parent.hasChildren() ? parent.children.find(function (t) return t.is(child)) : null;
 	}
 
 	public static function oneHasChild(tokens:Iterable<TokenTree>, child:TokenDef):Bool {
