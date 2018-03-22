@@ -366,10 +366,10 @@ class WhitespaceCheck extends Check {
 			switch (token.tok) {
 				case At: return META;
 				case Kwd(KwdFunction): return FUNCTION_PARAM;
-				case POpen: return PARENTHESES;
-				case Binop(OpAssign), Binop(OpAssignOp(_)): return COND;
 				case Kwd(KwdVar): return PROPERTY;
+				case Kwd(KwdCast): return FUNCTION_CALL;
 				case Kwd(KwdIf), Kwd(KwdFor), Kwd(KwdWhile), Kwd(KwdSwitch), Kwd(KwdCase): return COND;
+				case Kwd(KwdNew):
 				case BrOpen: return contextOfBrOpen(token);
 				case Const(CIdent(_)):
 					if (token.hasChildren() &&
@@ -381,7 +381,8 @@ class WhitespaceCheck extends Check {
 						if (token.parent.is(BrOpen) && token.parent.parent.parent.is(Kwd(KwdEnum))) return FUNCTION_PARAM;
 						return FUNCTION_CALL;
 					}
-				default:
+				case Comment(_), CommentLine(_):
+				default: return PARENTHESES;
 			}
 		}
 		return null;
