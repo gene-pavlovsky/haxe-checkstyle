@@ -1,0 +1,3 @@
+src/checkstyle/checks/whitespace/WhitespaceCheck.hx:13: characters 1-52 : Info: TODO comment:TODO: cannot differentiate between: ") {" and ")"
+src/checkstyle/checks/whitespace/WhitespaceCheck.hx:14: characters 1-28 : Info: TODO comment:TODO: array comprehension
+src/checkstyle/checks/whitespace/WhitespaceCheck.hx:224: characters 2-34 : Info: TODO comment:TODO: handle different minuses

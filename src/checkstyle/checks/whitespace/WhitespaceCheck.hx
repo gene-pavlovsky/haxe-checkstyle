@@ -144,7 +144,7 @@ class WhitespaceCheck extends Check {
 			checkWhitespaceAdvanced(tok);
 		}
 	}
-	
+
 	function checkWhitespaceExtAdvanced(tok:TokenTree, checkCallback:WhitespacePolicyCheck) {
 		var linePos:LinePos = checker.getLinePos(tok.pos.min);
 		var tokLen:Int = tok.toString().length;
@@ -155,7 +155,7 @@ class WhitespaceCheck extends Check {
 		var line:String = checker.lines[linePos.line];
 		var before:String = line.substr(0, linePos.ofs);
 		var after:String = line.substr(linePos.ofs + tokLen);
-		
+
 		if (ignore.contains(SPACE)) {
 			before = before.replace(" ", "");
 			after = after.replace(" ", "");
@@ -164,10 +164,10 @@ class WhitespaceCheck extends Check {
 			before = before.replace("\t", "");
 			after = after.replace("\t", "");
 		}
-		
+
 		var whitespaceBefore:Bool = ~/^(.*\s|)$/.match(before);
 		var whitespaceAfter:Bool = ~/^(\s.*|)$/.match(after);
-		
+
 		if (ignore.contains(NEWLINE)) {
 			if (before == "") whitespaceBefore = false;
 			if (after == "") whitespaceAfter = false;
@@ -274,10 +274,10 @@ class WhitespaceCheck extends Check {
 			}
 			token = token.parent;
 		}
-		
+
 		return stack;
 	}
-	
+
 	/*function contextOfQuestion(token:TokenTree):TokenContext {
 		if (token.hasChild(DblDot))
 	}*/
@@ -372,9 +372,8 @@ class WhitespaceCheck extends Check {
 						!token.parent.tok.match(Kwd(KwdFunction)) &&
 						!token.parent.is(Kwd(KwdVar)) &&
 						!token.parent.is(At)) {
-						
-						if (token.parent.is(BrOpen) && token.parent.parent.parent.is(Kwd(KwdEnum)))
-							return FUNCTION_PARAM;
+
+						if (token.parent.is(BrOpen) && token.parent.parent.parent.is(Kwd(KwdEnum))) return FUNCTION_PARAM;
 						return FUNCTION_CALL;
 					}
 				default:
