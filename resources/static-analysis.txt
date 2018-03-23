@@ -1,4 +1,2 @@
-src/checkstyle/checks/whitespace/WhitespaceCheck.hx:13: characters 1-52 : Info: TODO comment:TODO: cannot differentiate between: ") {" and ")"
-src/checkstyle/checks/whitespace/WhitespaceCheck.hx:14: characters 1-28 : Info: TODO comment:TODO: array comprehension
-src/checkstyle/checks/whitespace/WhitespaceCheck.hx:224: characters 2-34 : Info: TODO comment:TODO: handle different minuses
-src/checkstyle/checks/whitespace/WhitespaceCheck.hx:251: characters 4-81 : Info: TODO comment:TODO: ternary detection will not work for anything before the question mark
+src/checkstyle/checks/whitespace/WhitespaceCheck.hx:14: characters 1-52 : Info: TODO comment:TODO: cannot differentiate between: ") {" and ")"
+src/checkstyle/checks/whitespace/WhitespaceCheck.hx:353: characters 2-20 : Info: TODO comment:TODO: SINGLELINE

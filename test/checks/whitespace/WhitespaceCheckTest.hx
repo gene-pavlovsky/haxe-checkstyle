@@ -56,7 +56,7 @@ class WhitespaceCheckTest extends CheckTestCase<WhitespaceCheckTests> {
 
 	public function testCorrectContext() {
 		var check = new WhitespaceCheck();
-		check.contexts = [FUNCTION_PARAM];
+		check.contexts = [FUNCTION];
 
 		check.tokens = [ASSIGN];
 		assertNoMsg(check, NO_WHITESPACE_GT);
@@ -64,6 +64,7 @@ class WhitespaceCheckTest extends CheckTestCase<WhitespaceCheckTests> {
 		assertNoMsg(check, NO_WHITESPACE_TYPEDEF);
 		assertNoMsg(check, NO_WHITESPACE_VAR_INIT);
 
+		check.contexts = [FUNCTION, "Function>TypeDeclaration"];
 		check.tokens = [POPEN, DBLDOT];
 		assertNoMsg(check, WHITESPACE_FUNCTION);
 		assertMsg(check, NO_WHITESPACE_AROUND_FUNCTION_POPEN, MSG_POPEN);
@@ -85,22 +86,18 @@ class WhitespaceCheckTest extends CheckTestCase<WhitespaceCheckTests> {
 		assertNoMsg(check, MATHS_IN_BLOCK);
 
 		check.tokens = [DBLDOT];
-		check.contexts = [FUNCTION];
+		check.contexts = [TYPE_DECL];
 		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_COLON);
-		check.contexts = [FUNCTION_PARAM];
-		assertNoMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS);
 		check.contexts = [OBJECT_DECL];
 		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_COLON);
 
 		check.tokens = [LT, GT];
-		check.contexts = ["Parameters>TypeParameter"];
-		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_LT);
 		check.contexts = ["Function>TypeParameter"];
-		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_GT);
+		assertMsg(check, DIFFERENT_COLONS_AND_TYPEPARAMS, MSG_LT);
 
-		check.contexts = ["Array"];
+		check.contexts = ["Array>BinaryOperator"];
 		assertMsg(check, ARRAY_MAP_RECOGNITION, MSG_LT);
-		check.contexts = ["Map"];
+		check.contexts = ["Map>BinaryOperator"];
 		assertNoMsg(check, ARRAY_MAP_RECOGNITION);
 	}
 
@@ -392,7 +389,7 @@ abstract WhitespaceCheckTests(String) to String {
 
 	var DIFFERENT_COLONS_AND_TYPEPARAMS = "
 	class Test {
-		function test(vars : Map<String, Dynamic > ) :Array < Dynamic> {
+		function test(vars : Map<String, Dynamic > ) :Array < Dynamic > {
 			return {
 				name: varName,
                 type : {
@@ -404,12 +401,12 @@ abstract WhitespaceCheckTests(String) to String {
 
 	var ARRAY_MAP_RECOGNITION = "
 	class Test {
-		var arrayTest = [true, false, 0<6];
-		var mapTest = ['a' => true, 'test' => 3 < 2];
+		var arrayTest:Array<Bool> = [true, false, 0<6];
+		var mapTest:Map<String, Bool> = ['a' => true, 'test' => 3 < 2];
 	}";
 
 	var META_RECOGNITION = "
 	class Test {
-		@test( 'test' ) var t = null;
+		@test( 'test' ) var t : String = null;
 	}";
 }

@@ -569,7 +569,9 @@
 					"Interface",
 					"Typedef",
 					"Abstract",
-					"Enum"
+					"Enum",
+					"TypeDeclaration",
+					"BinaryOperator"
 				]
 			},
 			"type": "Whitespace"
