@@ -11,8 +11,6 @@ using checkstyle.utils.TokenTreeCheckUtils;
 @desc("Checks that whitespace is present or absent around a token in a specific context.")
 class WhitespaceCheck extends Check {
 
-	//TODO: cannot differentiate between: ") {" and ")"
-
 	public var policies:Array<AdvancedWhitespacePolicy>;
 	public var tokens:Array<WhitespaceToken>;
 	public var contexts:Array<String>;
@@ -350,7 +348,6 @@ class WhitespaceCheck extends Check {
 		var isWithin = checkPos(expr.pos, token);
 		if (!ignorePosOnce && !isWithin) return false;
 
-		//TODO: SINGLELINE
 		switch (expr.expr) {
 			case EConst(CIdent(_)):
 			case EConst(_):

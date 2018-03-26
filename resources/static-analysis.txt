@@ -1,2 +1,0 @@
-src/checkstyle/checks/whitespace/WhitespaceCheck.hx:14: characters 1-52 : Info: TODO comment:TODO: cannot differentiate between: ") {" and ")"
-src/checkstyle/checks/whitespace/WhitespaceCheck.hx:353: characters 2-20 : Info: TODO comment:TODO: SINGLELINE
