@@ -149,6 +149,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkTypeDecl(type:TypeDecl, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (type == null) return false;
+
 		if (!checkPos(type.pos, token)) return false;
 
 		switch (type.decl) {
@@ -188,6 +190,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkTypeParams(params:Array<TypeParam>, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (params == null) return false;
+
 		for (p in params) {
 			switch (p) {
 				case TPType(t):
@@ -200,6 +204,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkComplexType(type:ComplexType, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (type == null) return false;
+
 		switch (type) {
 			case TPath(p):
 				walkTypeParams(p.params, token, stack);
@@ -228,6 +234,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkEnumConstructors(consts:Array<EnumConstructor>, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (consts == null) return false;
+
 		for (c in consts) {
 			var isMeta = walkMetadata(c.meta, token, stack);
 			if (!isMeta && !checkPos(c.pos, token)) continue;
@@ -238,6 +246,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkFields(fields:Array<Field>, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (fields == null) return false;
+
 		for (f in fields) {
 			var isMeta = walkMetadata(f.meta, token, stack);
 			if (!isMeta && !checkPos(f.pos, token)) continue;
@@ -261,6 +271,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkDefinition<A, B>(d:Definition<A, B>, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (d == null) return false;
+
 		walkParams(d.params, token, stack);
 		if (walkMetadata(d.meta, token, stack)) stack.push(META);
 
@@ -286,6 +298,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkFunction(func:Function, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (func == null) return false;
+
 		stack.push(FUNCTION);
 		walkParams(func.params, token, stack);
 		if (func.args != null) {
@@ -344,7 +358,7 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkExpr(expr:Expr, token:TokenTree, stack:List<TokenContext>, ignorePosOnce = false):Bool {
-		if (expr == null) return false;
+		if (expr == null || expr.expr == null) return false;
 		var isWithin = checkPos(expr.pos, token);
 		if (!ignorePosOnce && !isWithin) return false;
 
@@ -461,6 +475,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkDefault(expr:Expr, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (expr == null) return false;
+
 		var tmpStack = new List<TokenContext>();
 		if (walkExpr(expr, token, tmpStack, true)) {
 			stack.push(CASE);
@@ -474,6 +490,8 @@ class WhitespaceCheck extends Check {
 	}
 
 	function walkCase(c:Case, token:TokenTree, stack:List<TokenContext>):Bool {
+		if (c == null) return false;
+
 		var hit = false;
 		var tmpStack = new List<TokenContext>();
 		for (v in c.values) {
