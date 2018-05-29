@@ -1,0 +1,3 @@
+# @install: lix --silent download "haxelib:hxtelemetry#0.3.5" into hxtelemetry/0.3.5/haxelib
+-D hxtelemetry=0.3.5
+-cp ${HAXE_LIBCACHE}/hxtelemetry/0.3.5/haxelib/
