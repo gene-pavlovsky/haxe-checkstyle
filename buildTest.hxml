@@ -1,5 +1,5 @@
 buildGlobal.hxml
--lib mcover:2.1.1
+-lib mcover
 -lib munit
 -D unittest
 -x TestMain
